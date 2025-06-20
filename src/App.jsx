@@ -4,11 +4,12 @@ import "./App.css";
 function App() {
     const videoRef = useRef(null);
     const gazeDotRef = useRef(null);
-    const [tracking, setTracking] = useState(true); // Inicialmente activo
-    const [buttonClicked, setButtonClicked] = useState(null);
-    const [hoveredButton, setHoveredButton] = useState(null); // Para mostrar tooltips
+    const hoverTimer = useRef(null);
 
-    // Coordenadas de los botones
+    const [tracking, setTracking] = useState(true);
+    const [buttonClicked, setButtonClicked] = useState(null);
+    const [hoveredButton, setHoveredButton] = useState(null);
+
     const buttonPositions = [
         { id: "comida", x: 0.3, y: 0.7, label: "Comida" },
         { id: "dolor", x: 0.7, y: 0.7, label: "Dolor" },
@@ -16,7 +17,6 @@ function App() {
         { id: "emociones", x: 0.7, y: 0.9, label: "Emociones" },
     ];
 
-    // Mensajes específicos por botón
     const buttonTooltips = {
         comida: "¿Tienes hambre?",
         dolor: "¿Te duele algo?",
@@ -24,7 +24,6 @@ function App() {
         emociones: "¿Cómo te sientes hoy?",
     };
 
-    // Efecto para iniciar/detener seguimiento ocular
     useEffect(() => {
         let gazeListener = null;
 
@@ -41,71 +40,98 @@ function App() {
 
         startWebcam();
 
+        // Activar herramientas de predicción (entrenamiento visual)
+        if (window.webgazer) {
+            window.webgazer.showVideoPreview(true);
+            window.webgazer.showPredictionPoints(true);
+            window.webgazer.showFaceOverlay(true);
+            window.webgazer.showFaceFeedbackBox(true);
+        }
+
         if (tracking && window.webgazer) {
             gazeListener = (data) => {
                 if (!data) return;
 
-                // Actualizar posición del punto rojo
+                const width = window.innerWidth;
+                const height = window.innerHeight;
+                const x = data.x * width;
+                const y = data.y * height;
+
+                // Actualizar punto rojo
                 if (gazeDotRef.current) {
-                    const { width, height } = window;
-                    const x = data.x * width;
-                    const y = data.y * height;
                     gazeDotRef.current.style.left = `${x}px`;
                     gazeDotRef.current.style.top = `${y}px`;
                 }
 
-                let focusedButton = null;
+                let focused = null;
 
                 buttonPositions.forEach((button) => {
-                    const isLookingAtButton = Math.abs(data.x - button.x) < 0.1 && Math.abs(data.y - button.y) < 0.1;
-
-                    if (isLookingAtButton) {
-                        focusedButton = button.id;
-                    }
+                    const isLooking = Math.abs(data.x - button.x) < 0.1 && Math.abs(data.y - button.y) < 0.1;
+                    if (isLooking) focused = button.id;
                 });
 
-                setButtonClicked(focusedButton);
-                setHoveredButton(focusedButton); // Muestra tooltip inmediatamente
+                if (focused && focused !== hoveredButton) {
+                    clearTimeout(hoverTimer.current);
+                    hoverTimer.current = setTimeout(() => {
+                        setButtonClicked(focused); // Activar como "seleccionado"
+                    }, 1500); // Tiempo de hover
+                }
+
+                if (!focused) {
+                    clearTimeout(hoverTimer.current);
+                    setButtonClicked(null);
+                }
+
+                setHoveredButton(focused);
             };
 
-            window.webgazer.setGazeListener(gazeListener).begin();
-        } else if (!tracking && window.webgazer) {
-            window.webgazer.setGazeListener(null);
-            window.webgazer.end();
-            setButtonClicked(null);
-            setHoveredButton(null);
+            window.webgazer.setGazeListener(gazeListener);
+            if (typeof window.webgazer.begin === "function") {
+                window.webgazer.begin();
+            }
         }
 
         return () => {
             if (window.webgazer) {
-                window.webgazer.setGazeListener(null);
-                window.webgazer.end();
+                try {
+                    window.webgazer.setGazeListener(null);
+                    if (typeof window.webgazer.end === "function") {
+                        window.webgazer.end();
+                    }
+                } catch (err) {
+                    console.warn("Error al limpiar WebGazer:", err);
+                }
             }
         };
     }, [tracking]);
 
-    const stopTracking = () => {
-        console.log("Botón 'Detener Seguimiento' clickeado");
-        setTracking(false);
-    };
-
-    const startTracking = () => {
-        console.log("Botón 'Iniciar Seguimiento' clickeado");
-        setTracking(true);
-    };
+    const stopTracking = () => setTracking(false);
+    const startTracking = () => setTracking(true);
 
     return (
         <div className="app">
             <div className="panel">
                 <div className="header">
                     <h1 className="title">Neurela</h1>
-                    <p className="subtitle">Mira un botón para seleccionarlo</p>
+                    <p className="subtitle">Mira un botón durante 1.5 segundos para seleccionarlo</p>
                 </div>
 
-                {/* Video en tiempo real */}
                 <video ref={videoRef} autoPlay playsInline className="video" />
 
-                {/* Panel de botones */}
+                <div
+                    ref={gazeDotRef}
+                    style={{
+                        position: "absolute",
+                        width: "20px", // Tamaño aumentado
+                        height: "20px",
+                        borderRadius: "50%",
+                        backgroundColor: "red",
+                        pointerEvents: "none",
+                        zIndex: 20,
+                        transform: "translate(-50%, -50%)",
+                    }}
+                ></div>
+
                 <div className="button-grid">
                     {buttonPositions.map((button) => (
                         <button
@@ -122,7 +148,6 @@ function App() {
                         </button>
                     ))}
 
-                    {/* Tooltip sobre botón actual */}
                     {hoveredButton && (
                         <div
                             className="hover-tooltip"
@@ -145,13 +170,11 @@ function App() {
                     )}
                 </div>
 
-                {/* Botones de control */}
-                {!tracking && (
+                {!tracking ? (
                     <button onClick={startTracking} className="btn control-btn">
                         Iniciar Seguimiento Ocular
                     </button>
-                )}
-                {tracking && (
+                ) : (
                     <button onClick={stopTracking} className="btn control-btn">
                         Detener Seguimiento
                     </button>
