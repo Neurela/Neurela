@@ -1,0 +1,185 @@
+/* Estilos generales */
+body,
+html {
+    margin: 0;
+    padding: 0;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f0f4f8;
+    color: #333;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.app {
+    width: 100%;
+    max-width: 480px;
+    background: linear-gradient(to bottom, #6a5acd, #4682b4); /* Gradiente morado y azul */
+    border-radius: 2rem;
+    padding: 2rem 1.5rem;
+    box-shadow: 0 15px 25px rgba(0, 0, 0, 0.1);
+    color: white;
+    position: relative; /* Importante para posicionamiento absoluto dentro */
+    min-height: 500px;
+    overflow: visible;
+}
+
+.panel {
+    text-align: center;
+    width: 100%;
+}
+
+.header {
+    margin-bottom: 1.5rem;
+}
+
+.title {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #fff;
+}
+
+.subtitle {
+    font-size: 1rem;
+    color: #d3d3d3;
+}
+
+.video {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    border: 3px solid #fff;
+    border-radius: 1rem;
+    margin-top: 1rem;
+    display: block;
+    z-index: 1;
+}
+
+.button-grid {
+    width: 100%;
+    margin-top: 1rem;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    justify-items: center;
+    align-items: center;
+    z-index: 10;
+    pointer-events: none; /* Evita que interfiera con el click */
+}
+
+.btn {
+    width: 100%;
+    max-width: 180px;
+    padding: 1rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: white;
+    border: none;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+    pointer-events: auto; /* Permite interacción */
+    z-index: 100;
+
+    /* 🧠 ELIMINADO:
+     position: absolute;
+     transform: translate(-50%, -50%);
+  */
+}
+
+#comida {
+    background-color: #ff6347;
+} /* Rojo */
+#dolor {
+    background-color: #ffcc00;
+    color: #333;
+} /* Amarillo */
+#baño {
+    background-color: #3498db;
+} /* Azul */
+#emociones {
+    background-color: #9b59b6;
+} /* Morado */
+
+.btn:hover {
+    transform: scale(1.05);
+}
+
+.btn.active {
+    transform: scale(1.05);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+.control-btn {
+    margin-top: 1.5rem;
+    background-color: #e74c3c;
+    color: white;
+    transition: background 0.3s ease;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    border-radius: 999px;
+    cursor: pointer;
+}
+
+.control-btn:hover {
+    background-color: #c0392b;
+}
+
+.gaze-dot {
+    position: fixed;
+    width: 1px;
+    height: 15px;
+    background-color: red;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+}
+
+.tooltip-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.95);
+    color: white;
+    padding: 1.5rem 2rem;
+    border-radius: 1rem;
+    text-align: center;
+    z-index: 9998;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+    font-size: 1.2rem;
+}
+
+.tooltip-buttons {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 1rem;
+}
+
+.tooltip-buttons button {
+    background-color: #00b894;
+    color: white;
+    border: none;
+    padding: 0.5rem 1.5rem;
+    font-size: 1rem;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.tooltip-buttons button:hover {
+    background-color: #01a286;
+}
+
+.hover-tooltip {
+    transition: opacity 0.2s ease-in-out;
+    opacity: 1;
+}
+
+/* Si deseas que desaparezca suavemente cuando no está enfocado */
+.hover-tooltip.hidden {
+    opacity: 0;
+}
